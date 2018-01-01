@@ -1,4 +1,4 @@
-= Scratch Spaces for Clojure REPL
+# Scratch Spaces for Clojure REPL
 
 Per Stuart Halloway's advice,
 I'm keeping a set of running scratch files
