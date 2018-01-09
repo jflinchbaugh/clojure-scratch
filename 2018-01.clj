@@ -1,26 +1,43 @@
 (comment parse my opml file to print a summary)
 
-(ns-aliases *ns*)
+(keys (ns-aliases *ns*))
 (ns-unalias *ns* 'zip)
+(ns-unalias *ns* 'xml)
+(ns-unalias *ns* 'io)
 
 (require
   '[clojure.java.io :as io]
-  '[clojure.data.xml :as xml]
+  '[clojure.xml :as xml]
+  '[clojure.java.io :as io]
   '[clojure.zip :as zip]
+  '[clojure.data.zip.xml :as zip-xml]
 )
 
-(def opml (->
+(def root (->
   "data/BeyondPodFeeds.opml"
   io/file
-  io/reader
   xml/parse
   zip/xml-zip
 ))
 
-(->
-  opml
-  zip/down
-  zip/right
-  zip/children
-  pprint
+(def feeds
+  (zip-xml/xml->
+    root
+    :body
+    :outline
+    :outline
+    zip/node
+  )
 )
+
+(pprint feeds)
+
+(def report
+  (zipmap
+    (map #(-> % :attrs :text) feeds)
+    (map #(-> % :attrs :xmlUrl) feeds)
+  )
+)
+
+(pprint report)
+
