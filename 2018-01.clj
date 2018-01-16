@@ -1,24 +1,39 @@
 (comment parse my opml file to print a summary)
 
-(keys (ns-aliases *ns*))
-(ns-unalias *ns* 'zip)
-(ns-unalias *ns* 'xml)
-(ns-unalias *ns* 'io)
-
 (require
   '[clojure.java.io :as io]
   '[clojure.xml :as xml]
-  '[clojure.java.io :as io]
   '[clojure.zip :as zip]
   '[clojure.data.zip.xml :as zip-xml]
 )
 
-(def root (->
-  "data/BeyondPodFeeds.opml"
-  io/file
-  xml/parse
-  zip/xml-zip
-))
+(defn zip-opml [file]
+  (->
+    file
+    xml/parse
+    zip/xml-zip
+  )
+)
+
+(def root
+  (->
+    "data/BeyondPodFeeds.opml"
+    io/file
+    zip-opml
+  )
+)
+
+(pprint root)
+
+(defn get-element [xml-root path]
+  (zip-xml/xml->
+    xml-root
+    (comment path)
+    zip/node
+  )
+)
+
+(get-element root [:body :outline :outline])
 
 (def feeds
   (zip-xml/xml->
@@ -30,14 +45,23 @@
   )
 )
 
-(pprint feeds)
+(pprint *feeds*)
 
-(def report
-  (zipmap
-    (map #(-> % :attrs :text) feeds)
-    (map #(-> % :attrs :xmlUrl) feeds)
+(def podcast-db
+  (into []
+    (map (fn [arg]
+      { :podcast-name (-> arg :attrs :text)
+        :podcast-url (-> arg :attrs :xmlUrl)
+      }
+    ) *feeds*)
   )
 )
 
-(pprint report)
+(map :podcast-name podcast-db)
+
+(map #(println "podcast name: " (:podcast-name %)
+           "\n"
+           "podcast url: " (:podcast-url %)
+           "\n"
+) podcast-db)
 
