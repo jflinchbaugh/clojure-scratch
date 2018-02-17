@@ -25,16 +25,6 @@
 
 (pprint root)
 
-(defn get-element [xml-root path]
-  (zip-xml/xml->
-    xml-root
-    (comment path)
-    zip/node
-  )
-)
-
-(get-element root [:body :outline :outline])
-
 (def feeds
   (zip-xml/xml->
     root
@@ -45,23 +35,38 @@
   )
 )
 
-(pprint *feeds*)
+(pprint feeds)
 
 (def podcast-db
   (into []
     (map (fn [arg]
-      { :podcast-name (-> arg :attrs :text)
+      {
+        :podcast-name (-> arg :attrs :text)
         :podcast-url (-> arg :attrs :xmlUrl)
       }
-    ) *feeds*)
+    )
+    feeds
+   )
   )
 )
 
-(map :podcast-name podcast-db)
+(map
+  #(println
+    "podcast name: " (:podcast-name %)
+    "\n"
+    "podcast url: " (:podcast-url %)
+    "\n"
+  ) podcast-db
+)
 
-(map #(println "podcast name: " (:podcast-name %)
-           "\n"
-           "podcast url: " (:podcast-url %)
-           "\n"
-) podcast-db)
+(comment make a more generic accessor)
+(defn get-element [xml-root path]
+  (apply zip-xml/xml->
+    xml-root
+    (comment path)
+    zip/node
+  )
+)
+
+(get-element root [:body :outline :outline])
 
