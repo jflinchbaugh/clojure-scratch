@@ -116,3 +116,35 @@
 (> (int \a) (int \A))
 
 (range (int \A) (int \Z))
+
+(
+  (fn [x]
+    (reduce
+      (fn [acc cur]
+        (if (= (last acc) cur)
+          acc
+          (conj acc cur)
+        )
+      )
+      [] (seq x)
+    )
+  )
+  [1 2 2 3 2]
+)
+
+(map first ( partition-by identity [1 1 2 3 4]))
+
+
+;; 4clj #32
+(#(reduce (fn [acc cur] (concat acc [cur cur])) [] %) [1 2])
+
+(#(interleave % %) [1 2])
+
+;; 4clj #33
+
+(
+  #(apply interleave (take %2 (repeat %1)))
+  [4 5 6] 1
+)
+
+(apply interleave (take 1 (repeat [1 2 3])))
