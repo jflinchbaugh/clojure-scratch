@@ -148,3 +148,14 @@
 )
 
 (apply interleave (take 1 (repeat [1 2 3])))
+
+(if-let [test true]
+  (str "true" test)
+  (str "false" test)
+)
+
+(defn flower-colors [{:keys [flower-1 flower-2]}]
+  (str "First is " flower-1 ", and second is " flower-2)
+)
+
+(flower-colors {:flower-1 "red", :flower-2 "white"})
