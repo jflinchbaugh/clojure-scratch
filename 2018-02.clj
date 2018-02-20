@@ -159,3 +159,6 @@
 )
 
 (flower-colors {:flower-1 "red", :flower-2 "white"})
+
+;; cycle through 3 random numbers
+(take 10 (cycle (take 3 (repeatedly #(rand-int 100)))))
