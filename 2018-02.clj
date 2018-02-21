@@ -187,3 +187,7 @@
 ((fn [x y] (take (- y x) (iterate inc x))) 1 4)
 
 (sort 1 2 3)
+
+;; 4clj #38
+(fn [& others] (-> others sort reverse first))
+
