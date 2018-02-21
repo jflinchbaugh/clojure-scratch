@@ -191,3 +191,8 @@
 ;; 4clj #38
 (fn [& others] (-> others sort reverse first))
 
+;; 4clj #39
+
+#(mapcat (fn [x y] [x y]) %1 %2)
+
+#(mapcat list %1 %2)
