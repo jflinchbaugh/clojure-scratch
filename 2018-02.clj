@@ -162,3 +162,28 @@
 
 ;; cycle through 3 random numbers
 (take 10 (cycle (take 3 (repeatedly #(rand-int 100)))))
+
+(
+  #(reduce (fn [acc cur] (concat acc (take %2 (repeat cur)))) [] %1)
+  [4,5,6] 1
+)
+
+(repeat 2 1)
+
+(mapcat (fn [x] [x x]) [1])
+
+(
+(fn [coll n]
+  (mapcat (partial repeat n) coll))
+  [4,5,6] 2
+)
+
+;; 4clj #34
+(
+  #((fn [acc cur end] (if (>= cur end) acc (recur (conj acc cur) (inc cur) end))) [] %1 %2)
+  1 5
+)
+
+((fn [x y] (take (- y x) (iterate inc x))) 1 4)
+
+(sort 1 2 3)
