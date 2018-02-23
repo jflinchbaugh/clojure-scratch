@@ -196,3 +196,6 @@
 #(mapcat (fn [x y] [x y]) %1 %2)
 
 #(mapcat list %1 %2)
+
+;; 4clj #40 interpose
+(#(rest (mapcat list (repeat %1) %2)) ", " [:a :b])
