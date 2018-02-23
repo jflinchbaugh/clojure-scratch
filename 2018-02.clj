@@ -199,3 +199,29 @@
 
 ;; 4clj #40 interpose
 (#(rest (mapcat list (repeat %1) %2)) ", " [:a :b])
+
+;; 4clj #41 drop every nth
+(
+  #(map
+    first
+    (filter
+      (fn [x] (not= (second x) %2))
+      (map (fn [x c] (list x c)) %1
+        (cycle (range 1 (inc %2)))
+      )
+    )
+  )
+  [1 2 3 4 5 6 7 8 :a :b :c] 2
+)
+
+(
+  (fn [coll n]
+    (mapcat #(take (dec n) %) (partition-all n coll)))
+  [1 2 3 4 5 6 7 8 :a :b :c] 2
+)
+
+;; 4clj #42
+(
+  #(reduce * (range 1 (inc %1)))
+  14
+)
