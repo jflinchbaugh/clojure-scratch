@@ -31,8 +31,7 @@
       size (count input)
       shift (mod (+ size rotate) size)
       front (take shift input)
-      count-left (- size shift)
-      back (reverse (take count-left (reverse input)))
+      back (drop shift input)
     ]
     (concat back front)
   )
