@@ -36,3 +36,39 @@
     (concat back front)
   )
 )
+
+; cheshire macros
+(defn hi-queen [phrase]
+  (str phrase ", so please your Majesty."))
+
+(defn alice-hi-queen [] (hi-queen "My name is Alice"))
+
+(alice-hi-queen)
+
+(defmacro def-hi-queen [name phrase]
+  (list 'defn
+    (symbol name)
+    []
+    (list 'hi-queen phrase)))
+
+(macroexpand-1 '(def-hi-queen alice-hi-queen "My name is Alice"))
+
+(def-hi-queen alice-hi-queen "My name is Alice")
+
+(alice-hi-queen)
+
+(def-hi-queen hatter-hi-queen "My name is Mad Hatter")
+
+(hatter-hi-queen)
+
+`(first [1 2 3])
+
+(let [x 5] `(first [~x 2 3]))
+
+(defmacro def-hi-queen [name phrase]
+  `(defn ~(symbol name) []
+    (hi-queen ~phrase)))
+
+(def-hi-queen hatter-hi-queen "My name is Mad Hatter")
+
+(hatter-hi-queen)
