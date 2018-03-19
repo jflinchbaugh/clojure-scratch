@@ -84,3 +84,22 @@
 (#(list (take %1 %2) (drop %1 %2)) 3 [1 2 3 4 5 6])
 #(list (take %1 %2) (drop %1 %2))
 
+
+; 4clj #50
+(= (set (
+#(vals (group-by type %1))
+[1 :a 2 :b 3 :c])) #{[1 2 3] [:a :b :c]})
+
+(type 1)
+
+; 4clj 51
+
+(=
+  [1 2 [3 4 5] [1 2 3 4 5]]
+  (let [
+    [a b & c :as d]
+      [1 2 3 4 5]
+    ]
+    [a b c d]
+  )
+)
