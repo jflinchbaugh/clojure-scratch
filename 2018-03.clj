@@ -75,3 +75,12 @@
 
 (-> [:a :b :c] (reverse) (list))
 (->> [:a :b :c] (reverse) (list))
+
+(reduce * (range 1 (inc 3)))
+
+(nth 2 [1 2 3])
+
+; 4clj #49
+(#(list (take %1 %2) (drop %1 %2)) 3 [1 2 3 4 5 6])
+#(list (take %1 %2) (drop %1 %2))
+
