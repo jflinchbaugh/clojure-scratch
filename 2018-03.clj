@@ -72,3 +72,6 @@
 (def-hi-queen hatter-hi-queen "My name is Mad Hatter")
 
 (hatter-hi-queen)
+
+(-> [:a :b :c] (reverse) (list))
+(->> [:a :b :c] (reverse) (list))
