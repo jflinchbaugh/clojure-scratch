@@ -103,3 +103,17 @@
     [a b c d]
   )
 )
+
+; 4clj 83
+
+(
+  (fn [& x]
+    (and
+        (true? (some true? x))
+        (true? (some false? x))
+    )
+  )
+  [ true false]
+)
+
+(true? (some false? [true]))
