@@ -128,3 +128,23 @@
 )
 
 (f 15001 15000000)
+
+; 4clj #107
+
+(
+  (
+    (fn [p] (fn [x] (reduce * (repeat p x))))
+    4
+  )
+  2
+)
+
+(defn raise [p] (fn [x] (reduce * (repeat p x))))
+
+(def square (raise 2))
+(square 4)
+
+(def cube (raise 3))
+(cube 2)
+
+(repeat 2 1)
