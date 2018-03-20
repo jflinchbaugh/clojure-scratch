@@ -117,3 +117,14 @@
 )
 
 (true? (some false? [true]))
+
+(fn [x y]
+  (let
+    [
+      candidates (reverse (map inc (range (min x y))))
+    ]
+    (first (filter #(= 0 (mod x %) (mod y %)) candidates))
+  )
+)
+
+(f 15001 15000000)
