@@ -178,3 +178,37 @@
 )
 
 (= (f #{1 2 3 4 5 6} #{1 3 5 7}) #{2 4 6 7})
+
+; 4clj #100 mcd
+
+(
+  (fn [n & r]
+    (first
+      (filter
+        (fn [nm]
+          (every? #(= 0 (rem nm %)) r)
+        )
+        (iterate #(+ n %) n)
+      )
+    )
+  )
+  7 5/7 2 3/5
+)
+
+; 4clj #97
+
+(def pascal
+  (fn f [x]
+    (case x
+      1 [1]
+      (concat
+        [1]
+        (map #(apply + %) (partition 2 1 (f (dec x))))
+        [1]
+      )
+    )
+  )
+)
+
+(pascal 11)
+
