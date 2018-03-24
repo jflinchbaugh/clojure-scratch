@@ -199,16 +199,18 @@
 
 (def pascal
   (fn f [x]
-    (case x
-      1 [1]
-      (concat
-        [1]
-        (map #(apply + %) (partition 2 1 (f (dec x))))
-        [1]
+    (if
+      (= 1 x) [1]
+      (vec
+        (concat
+          [1]
+          (map #(apply + %) (partition 2 1 (f (dec x))))
+          [1]
+        )
       )
     )
   )
 )
 
-(pascal 11)
+(map pascal (range 1 11))
 
