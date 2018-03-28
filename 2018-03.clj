@@ -214,3 +214,18 @@
 
 (map pascal (range 1 11))
 
+
+; 4clj #95 binary tree
+
+(def f
+  (fn istree? [root]
+    (or (nil? root)
+      (and (sequential? root)
+        (= 3 (count root))
+        (every? istree? (rest root))
+      )
+    )
+  )
+)
+
+(= (f '(:a (:b nil nil) nil)) true)
