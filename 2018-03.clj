@@ -234,24 +234,27 @@
 
 (take 10 my-list)
 
-(defn all-subs [my-list]
-  (for
+(fn [in-seq]
+  (letfn
     [
-      t (range (count my-list))
-      d (range (- (count my-list) t))
+      (all-subs [my-list]
+        (for
+          [
+            t (range (count my-list))
+            d (range (- (count my-list) t))
+          ]
+          (->> my-list (drop d) (take (inc t)))
+        )
+      )
     ]
-    (->> my-list (drop d) (take (inc t)))
+    (->>
+      in-seq
+      all-subs
+      (filter #(= % (sort (list (hash-set %)))))
+      (group-by count)
+      last
+      second
+      first
+    )
   )
-)
-
-(#(= % (sort %)))
-
-(->>
-  [1 2 3 45 223 4 1 2 3 4 5]
-  all-subs
-  (filter #(= % (sort %)))
-  (group-by count)
-  last
-  second
-  first
 )
