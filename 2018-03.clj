@@ -19,7 +19,7 @@
 
 (partition 5 (range 10))
 
-(map list [0 1 2 3 4] [5 6 7 8 9])
+(map list [0 1 2 3 4] [5 6 7 8 9] [10 11 12 13 14 15])
 
 (#(apply map list (partition %2 %1)) (range 10) 5)
 
