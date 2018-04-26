@@ -9,15 +9,17 @@
 )
 
 (defn sieve [remaining]
-  (if (empty? remaining) ())
-  (lazy-seq
-    (let
-      [
-        [f & rst] remaining
-      ]
-      (cons f (sieve (remove #(multiple-of? f %) rst)))
+  (if
+    (empty? remaining) ()
+    (lazy-seq
+      (let
+        [
+          [f & rst] remaining
+        ]
+        (cons f (sieve (remove #(multiple-of? f %) rst)))
+      )
     )
   )
 )
 
-(sieve (take 10 integers))
+(sieve (take 1000 integers))
