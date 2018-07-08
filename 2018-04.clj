@@ -23,3 +23,24 @@
 )
 
 (sieve (take 1000 integers))
+
+; factorial
+
+(defn factorial [n]
+  (if
+    (zero? n) 1
+    (* n (factorial (dec n)))
+  )
+)
+
+(factorial 20)
+
+(for
+  [
+    message-char [\a \b \c \d]
+    key-char [\x \y \z]
+    :while (some? message-char)
+  ]
+  [message-char key-char]
+)
+
