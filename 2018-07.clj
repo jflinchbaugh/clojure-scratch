@@ -29,7 +29,6 @@
   )
 )
 
-
 (is-increasing? [6 2 3 4])
 
 (longest-sequential [1 2 3 4])
@@ -57,7 +56,33 @@
 
 (holev s)
 
-(partition 1 s)
+(or
+  (first
+    (filter
+      #(apply < %)
+      (mapcat #(partition % 1 s) (range (count s) 1 -1))
+    )
+  )
+  []
+)
+
 
 (apply < [ 1 2 3 4 6])
 
+; clj #54
+
+(def partit
+  (fn partit [s col]
+    (if
+      (< (count col) s)
+      []
+      (cons
+        (take s col)
+        (partit s (drop s col)
+      )
+      )
+    )
+  )
+)
+
+(partit 2 (range 12))
