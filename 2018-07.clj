@@ -86,3 +86,66 @@
 )
 
 (partit 2 (range 12))
+
+; clj #55
+(
+  (fn [col]
+    (into {}
+      (map
+        (fn [[k v]] [k (count v)])
+        (group-by identity col)
+      )
+    )
+  )
+  [1 1 1 3 5 1 3 4 5]
+)
+
+(map #(identity [(first %) (count (second %))]))
+
+; clj #56
+
+(def my-unique
+  (fn my-unique
+    ([col]
+      (my-unique col [])
+    )
+    ([[c & rst :as col] acc]
+      (if (empty? col)
+        acc
+        (my-unique
+          rst
+          (if
+            (some #(= c %) acc)
+            acc
+            (conj acc c)
+          )
+        )
+      )
+    )
+  )
+)
+
+(def my-unique
+  (fn [col]
+    (reduce )
+  )
+)
+
+(my-unique [1 2 3 1 2 3])
+
+(= (my-unique [1 2 1 3 1 2 4]) [1 2 3 4])
+
+(reduce + (range 5))
+
+(def nums [1 2 2 3 3 4 1])
+
+; clj #56 shorter
+(def my-unique
+  (fn [vctr]
+    (reduce
+      (fn [col x] (if (some #(= x %) col) col (conj col x)))
+      []
+      vctr
+    )
+  )
+)
