@@ -102,7 +102,7 @@
 
 (map #(identity [(first %) (count (second %))]))
 
-; clj #56
+; 4clj #56
 
 (def my-unique
   (fn my-unique
@@ -139,7 +139,7 @@
 
 (def nums [1 2 2 3 3 4 1])
 
-; clj #56 shorter
+; 4clj #56 shorter
 (def my-unique
   (fn [vctr]
     (reduce
@@ -150,6 +150,15 @@
   )
 )
 
-; clj #57
+; 4clj #57
 
 ((fn foo [x] (when (> x 0) (conj (foo (dec x)) x))) 5)
+
+
+;4clj #58
+(fn [f & rst])
+
+(def solution (fn [& rst] (reduce (fn [f1 f2] #(f1 (apply f2 %&))) rst)))
+
+(= true ((solution zero? #(mod % 8) +) 3 5 7 9))
+
