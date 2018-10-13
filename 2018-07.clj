@@ -162,3 +162,13 @@
 
 (= true ((solution zero? #(mod % 8) +) 3 5 7 9))
 
+((juxt first last rest reverse) '( 1 2 3 4 ))
+
+;4clj #59
+
+(def solution (fn [& rst] (reduce (fn [f1 f2] #(f1 (apply f2 %&))) rst)))
+
+(map #(%1 %&))
+((map #(partial apply %) [first last rest]) [1 2 3])
+
+
