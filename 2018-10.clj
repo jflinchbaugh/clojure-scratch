@@ -1,12 +1,10 @@
 (source prn)
 
-
-
 (comment
   things
 )
 
-
+; do does stuff
 (do
   (prn "hello")
   (prn "hello")
@@ -21,7 +19,9 @@
   { :name "dinner" :start "3" }
 ])
 
-(defn rotate [lst]
+(defn rotate
+  "rotate the list the left"
+  [lst]
   (concat
     (rest lst)
     (-> lst first str (cons []))))
