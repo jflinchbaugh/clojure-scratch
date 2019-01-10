@@ -77,11 +77,12 @@
 (use 'hiccup.core)
 (use 'hiccup.page)
 (require
-;  '(hiccup
-;    [core :as h]
-;    [page :as p]
-;  )
-  '(clojure.string :as str)
+  '[
+    hiccup
+    [core :as h]
+    [page :as p]
+  ]
+  '[clojure.string :as str]
 )
 
 (p/xml-declaration "utf-8")
@@ -96,4 +97,52 @@
 
 (p/xml-declaration "utf-8")
 
-(clojure.string/join " " )
+(str/join " " )
+
+; testing
+
+; loop
+
+(doc loop)
+
+(loop
+  [
+    x 1
+    total 0
+  ]
+  (if (>= x 10)
+    total
+    (recur (+ x 1) (+ total x))
+  )
+)
+
+; mike's processing toys
+
+(<= 0 1 2 2 2 3 4)
+
+
+(defn check-grow [state height]
+  (p/pprint ["check-grow" state height])
+  (if (<= 0 (:r state))
+    (update-in state [:shrink] (constantly false))
+    state))
+
+(defn check-shrink [state height]
+  (p/pprint ["check-shrink" state height])
+  (if (and (not (:shrink state))(< (/ height 4) (:r state)))
+    (update-in state [:shrink] (constantly true))
+    state))
+
+(defn grow-or-shrink [state height]
+  (p/pprint ["grow-or-shrink" state height])
+  (if (:shrink state)
+    (update-in state [:r] dec)
+    (update-in state [:r] inc)))
+
+
+(defn update-state [state]
+  (p/pprint ["update-state" state])
+  (reduce (fn [new-state state-modification-fn]
+            (state-modification-fn new-state (q/height)))
+          state
+          [check-grow check-shrink grow-or-shrink]))
