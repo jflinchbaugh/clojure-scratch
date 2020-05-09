@@ -3,10 +3,6 @@
 
 ;; https://www.popularmechanics.com/home/a32071853/open-the-lock-puzzle-riddle-answer/
 (l/run* [a b c]
-  ;; each is 0-10
-  (l/membero a (range 10))
-  (l/membero b (range 10))
-  (l/membero c (range 10))
   ;; 6 8 2 one digit is right and in its right place
   (l/conde
     [(l/== a 6)]
