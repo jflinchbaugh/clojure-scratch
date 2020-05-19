@@ -47,21 +47,17 @@
 
 (defn parse-date [s]
   (cond
-    (re-matches #".*/.*/.*" s) s
-    (re-matches #".*-.*-.*T.*" s) s
-    (re-matches #".*-.*-.*" s) s
-    :else (instant/read-instant-date s)))
+    (re-matches #"\d+/\d+/\d{4}" s) (t/local-date "M/d/yyyy" s)
+    (re-matches #"\d+/\d+/\d{2}" s) (t/local-date "M/d/yy" s)
+    (re-matches #"\d+/\d+/\d{2} \d+:\d+" s) (t/local-date "M/d/yy H:m" s)
+    (re-matches #"\d+/\d+/\d{4} \d+:\d+" s) (t/local-date "M/d/yyyy H:m" s)
+    (re-matches #"\d+-\d+-\d+T\d+:\d+:\d+" s) (t/local-date "y-M-d'T'H:m:s" s)
+    (re-matches #"\d+-\d+-\d+ \d+:\d+:\d+" s) (t/local-date "y-M-d H:m:s" s)
+    :else (throw (IllegalArgumentException. (str "Bad date: " s)))))
 
 (defn fix-date [m] (update-in m [:date] parse-date))
 
 (comment
-
-  (parse-date "x")
-
-  (dtf/parse dtf/iso-date "2020-05-20")
-
-  (if (re-matches #".*" "1") "yay")
-
   (->>
    "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
    read-csv
@@ -69,6 +65,6 @@
    (pmap fix-date)
    (filter #(= ["Lancaster" "Pennsylvania"] ((juxt :county :state) %)))
    (sort-by :date)
-   (pmap :date))
+   (pmap (juxt :date :cases :deaths)))
 
   nil)
