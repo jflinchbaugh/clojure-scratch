@@ -6,4 +6,7 @@
                  [org.clojure/data.zip "1.0.0"]
                  [cljc.java-time "0.1.8"]
                  [clojure.java-time "0.3.2"]
-                 [hiccup "1.0.5"]])
+                 [hiccup "1.0.5"]
+                 [seancorfield/next.jdbc "1.0.424"]
+                 [com.h2database/h2 "1.4.200"]
+                 [hugsql-next-jdbc "0.1.3"]])
