@@ -58,15 +58,17 @@
 
 (defn fix-date [m] (update-in m [:date] (comp str parse-date)))
 
+(defn view
+  ([col sz] (->> col (take sz) (map #(do (println %) %))))
+  ([col] (view col 50)))
+
 (comment
   (->>
    "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
    read-csv
    (pmap cols->maps)
    (pmap fix-date)
-   (filter #(= ["Lancaster" "Pennsylvania"] ((juxt :county :state) %)))
-   (sort-by :date)
-   (pmap (comp (partial str/join " ") (juxt :date :cases :deaths)))
-   (map println))
+   (sort-by (juxt :date :country :state :county))
+   view)
 
   nil)
