@@ -1,11 +1,9 @@
 (ns scratch.covid
-  (:require [clojure.core.logic :as l]
-            [clojure.data.csv :as csv]
-            [clojure.instant :as instant]
+  (:require [clojure.data.csv :as csv]
             [java-time :as t]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [clojure.pprint :as pp]))
+            [next.jdbc :as jdbc]))
 
 (defn read-6 [[n2 n3 n4 n5 n6 n7]]
   {:county ""
@@ -59,10 +57,31 @@
 (defn fix-date [m] (update-in m [:date] (comp str parse-date)))
 
 (defn view
-  ([col sz] (->> col (take sz) (map #(do (println %) %))))
-  ([col] (view col 50)))
+  ([f col]
+   (let [tp (f col)]
+     (doall (map println tp)) col))
+  ([col]
+   (view (partial take 50) col)))
+
+(def ds (jdbc/get-datasource {:dbtype "h2" :dbname "covid"}))
 
 (comment
+
+  (jdbc/execute! ds [
+"create table covid_day (
+  date date,
+  country text,
+  state text,
+  county text,
+  case_count int,
+  death_count int,
+  recovery_count int
+)"])
+
+  (jdbc/execute! ds ["drop table covid_day if exists"])
+
+  (jdbc/execute! ds ["select * from covid_day"])
+
   (->>
    "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
    read-csv
