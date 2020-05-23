@@ -56,6 +56,14 @@
 
 (defn fix-date [m] (update-in m [:date] (comp str parse-date)))
 
+(defn parse-int [i] (if (str/blank? i) nil (Integer/parseInt i)))
+
+(defn fix-numbers [m]
+  (-> m
+      (update-in [:cases] parse-int)
+      (update-in [:deaths] parse-int)
+      (update-in [:recoveries] parse-int)))
+
 (defn view
   ([f col]
    (let [tp (f col)]
@@ -63,31 +71,103 @@
   ([col]
    (view (partial take 50) col)))
 
-(def ds (jdbc/get-datasource {:dbtype "h2" :dbname "covid"}))
+(def ds (jdbc/get-datasource {:dbtype "h2:mem" :dbname "covid"}))
+
+(def insert-values
+  (juxt :date :country :state :county
+        :cases :cases-change
+        :deaths :deaths-change
+        :recoveries :recoveries-change))
+
+(defn insert-day! [ds r]
+  (jdbc/execute! ds
+                 (cons "
+insert into covid_day (
+  date,
+  country,
+  state,
+  county,
+  case_total,
+  case_change,
+  death_total,
+  death_change,
+  recovery_total,
+  recovery_change
+) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                       (insert-values r))))
+
+(defn drop-table! [ds]
+  (jdbc/execute! ds ["drop table covid_day if exists"]))
+
+(defn create-table! [ds]
+  (drop-table! ds)
+  (jdbc/execute! ds ["
+create table covid_day (
+  date date,
+  country varchar,
+  state varchar,
+  county varchar,
+  case_total int,
+  case_change int,
+  death_total int,
+  death_change int,
+  recovery_total int,
+  recovery_change int
+)"]))
+
+(def location-grouping (juxt :country :state :county))
+
+(def table-keys (juxt :country :state :county :date))
+
+(defn calc-changes [lst new]
+  (let [prev (last lst)]
+    (conj
+     lst
+     (merge new {:cases-change (- (or (:cases new) 0) (or (:cases prev) 0))
+                 :deaths-change (- (or (:deaths new) 0) (or (:deaths prev) 0))
+                 :recoveries-change (- (or (:recoveries new) 0) (or (:recoveries prev) 0))}))))
+
+(defn ammend-changes [col]
+  (->> col
+       (sort-by table-keys)
+       (group-by location-grouping)
+       (reduce-kv
+        (fn [m k v]
+          (assoc m k (reduce calc-changes [] v))) {})
+       vals
+       flatten))
 
 (comment
 
-  (jdbc/execute! ds [
-"create table covid_day (
-  date date,
-  country text,
-  state text,
-  county text,
-  case_count int,
-  death_count int,
-  recovery_count int
-)"])
+  (time (do
+          (create-table! ds)
+          (->>
+           "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
+           read-csv
+           (pmap cols->maps)
+           (pmap fix-date)
+           (pmap fix-numbers)
+           (ammend-changes)
+           (map (partial insert-day! ds))
+           count)))
 
-  (jdbc/execute! ds ["drop table covid_day if exists"])
+  (jdbc/execute! ds ["
+select count(*) as c
+from covid_day"])
 
-  (jdbc/execute! ds ["select * from covid_day"])
+  (->> (jdbc/execute! ds ["select * from covid_day"]) (pmap vals) (map prn))
 
   (->>
-   "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
-   read-csv
-   (pmap cols->maps)
-   (pmap fix-date)
-   (sort-by (juxt :date :country :state :county))
-   view)
+   (jdbc/execute! ds ["
+select date, case_total, case_change
+from covid_day
+where country = 'US'
+and state = 'Pennsylvania'
+and county = 'Lancaster'
+"])
+   (map vals)
+   (map prn))
+
+  (jdbc/execute! ds ["delete from covid_day"])
 
   nil)
