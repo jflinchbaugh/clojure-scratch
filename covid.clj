@@ -46,15 +46,15 @@
 
 (defn parse-date [s]
   (cond
-    (re-matches #"\d+/\d+/\d{4}" s) (t/local-date "M/d/yyyy" s)
-    (re-matches #"\d+/\d+/\d{2}" s) (t/local-date "M/d/yy" s)
-    (re-matches #"\d+/\d+/\d{2} \d+:\d+" s) (t/local-date "M/d/yy H:m" s)
-    (re-matches #"\d+/\d+/\d{4} \d+:\d+" s) (t/local-date "M/d/yyyy H:m" s)
-    (re-matches #"\d+-\d+-\d+T\d+:\d+:\d+" s) (t/local-date "y-M-d'T'H:m:s" s)
-    (re-matches #"\d+-\d+-\d+ \d+:\d+:\d+" s) (t/local-date "y-M-d H:m:s" s)
+    (re-matches #"\d+/\d+/\d{4}" s) (t/local-date-time "M/d/yyyy" s)
+    (re-matches #"\d+/\d+/\d{2}" s) (t/local-date-time "M/d/yy" s)
+    (re-matches #"\d+/\d+/\d{2} \d+:\d+" s) (t/local-date-time "M/d/yy H:m" s)
+    (re-matches #"\d+/\d+/\d{4} \d+:\d+" s) (t/local-date-time "M/d/yyyy H:m" s)
+    (re-matches #"\d+-\d+-\d+T\d+:\d+:\d+" s) (t/local-date-time "y-M-d'T'H:m:s" s)
+    (re-matches #"\d+-\d+-\d+ \d+:\d+:\d+" s) (t/local-date-time "y-M-d H:m:s" s)
     :else (throw (IllegalArgumentException. (str "Bad date: " s)))))
 
-(defn fix-date [m] (update-in m [:date] (comp str parse-date)))
+(defn fix-date [m] (update-in m [:date] parse-date))
 
 (defn parse-int [i] (if (str/blank? i) nil (Integer/parseInt i)))
 
@@ -103,7 +103,7 @@ insert into covid_day (
   (drop-table! ds)
   (jdbc/execute! ds ["
 create table covid_day (
-  date date,
+  date timestamp,
   country varchar,
   state varchar,
   county varchar,
@@ -112,8 +112,7 @@ create table covid_day (
   death_total int,
   death_change int,
   recovery_total int,
-  recovery_change int
-)"]))
+  recovery_change int)"]))
 
 (def location-grouping (juxt :country :state :county))
 
@@ -148,14 +147,23 @@ create table covid_day (
            (pmap fix-date)
            (pmap fix-numbers)
            (ammend-changes)
-           (map (partial insert-day! ds))
+           (pmap (partial insert-day! ds))
+           doall
            count)))
 
-  (jdbc/execute! ds ["
-select count(*) as c
-from covid_day"])
+  (->> (jdbc/execute! ds ["
+select *
+from covid_day
+order by date, country, state, county"])
+    (take 20))
 
-  (->> (jdbc/execute! ds ["select * from covid_day"]) (pmap vals) (map prn))
+  (->> (jdbc/execute! ds ["select count(distinct country) from covid_day"]) )
+
+  (->> (jdbc/execute! ds ["
+select date, country, state, county, count(*) as c
+from covid_day
+group by date, country, state, county
+having c > 1"]))
 
   (->>
    (jdbc/execute! ds ["
@@ -166,6 +174,7 @@ and state = 'Pennsylvania'
 and county = 'Lancaster'
 "])
    (map vals)
+   (map #(update % 0 local-date))
    (map prn))
 
   (jdbc/execute! ds ["delete from covid_day"])
