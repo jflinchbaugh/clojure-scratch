@@ -79,23 +79,6 @@
         :deaths :deaths-change
         :recoveries :recoveries-change))
 
-(defn insert-day! [ds r]
-  (jdbc/execute! ds
-                 (cons "
-insert into covid_day (
-  date,
-  country,
-  state,
-  county,
-  case_total,
-  case_change,
-  death_total,
-  death_change,
-  recovery_total,
-  recovery_change
-) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-                       (insert-values r))))
-
 (defn drop-table! [ds]
   (jdbc/execute! ds ["drop table covid_day if exists"]))
 
@@ -115,6 +98,23 @@ create table covid_day (
   recovery_change int,
   primary key (date, country, state, county))"]))
 
+(defn insert-day! [ds r]
+  (jdbc/execute! ds
+                 (cons "
+insert into covid_day (
+  date,
+  country,
+  state,
+  county,
+  case_total,
+  case_change,
+  death_total,
+  death_change,
+  recovery_total,
+  recovery_change
+) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                       (insert-values r))))
+
 (def location-grouping (juxt :country :state :county))
 
 (def table-keys (juxt :country :state :county :date))
@@ -123,15 +123,20 @@ create table covid_day (
   (let [prev (last lst)]
     (conj
      lst
-     (merge new {:cases-change (-
-                                (or (:cases new) 0)
-                                (or (:cases prev) 0))
-                 :deaths-change (-
-                                 (or (:deaths new) 0)
-                                 (or (:deaths prev) 0))
-                 :recoveries-change (-
-                                     (or (:recoveries new) 0)
-                                     (or (:recoveries prev) 0))}))))
+     (merge
+      new
+      {:cases-change
+       (-
+        (or (:cases new) 0)
+        (or (:cases prev) 0))
+       :deaths-change
+       (-
+        (or (:deaths new) 0)
+        (or (:deaths prev) 0))
+       :recoveries-change
+       (-
+        (or (:recoveries new) 0)
+        (or (:recoveries prev) 0))}))))
 
 (defn ammend-changes [col]
   (->> col
@@ -193,8 +198,8 @@ group by county
 
 (defn series-by-county [ds country state county]
   (jdbc/execute!
-    ds
-    ["
+   ds
+   ["
 select
   date,
   case_total, case_change,
@@ -206,9 +211,9 @@ and state = ?
 and county = ?
 order by date, country, state, county
 "
-     country
-     state
-     county]))
+    country
+    state
+    county]))
 
 (comment
   (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
@@ -218,7 +223,7 @@ order by date, country, state, county
    (map (comp prn vals)))
 
   (->>
-    (series-by-county ds "US" "Pennsylvania" "Lancaster")
-    (map (comp prn vals)))
+   (series-by-county ds "US" "Pennsylvania" "Lancaster")
+   (map (comp prn vals)))
 
   nil)
