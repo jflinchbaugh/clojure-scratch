@@ -46,12 +46,12 @@
 
 (defn parse-date [s]
   (cond
-    (re-matches #"\d+/\d+/\d{4}" s) (t/local-date-time "M/d/yyyy" s)
-    (re-matches #"\d+/\d+/\d{2}" s) (t/local-date-time "M/d/yy" s)
-    (re-matches #"\d+/\d+/\d{2} \d+:\d+" s) (t/local-date-time "M/d/yy H:m" s)
-    (re-matches #"\d+/\d+/\d{4} \d+:\d+" s) (t/local-date-time "M/d/yyyy H:m" s)
-    (re-matches #"\d+-\d+-\d+T\d+:\d+:\d+" s) (t/local-date-time "y-M-d'T'H:m:s" s)
-    (re-matches #"\d+-\d+-\d+ \d+:\d+:\d+" s) (t/local-date-time "y-M-d H:m:s" s)
+    (re-matches #"\d+/\d+/\d{4}" s) (t/local-date "M/d/yyyy" s)
+    (re-matches #"\d+/\d+/\d{2}" s) (t/local-date "M/d/yy" s)
+    (re-matches #"\d+/\d+/\d{2} \d+:\d+" s) (t/local-date "M/d/yy H:m" s)
+    (re-matches #"\d+/\d+/\d{4} \d+:\d+" s) (t/local-date "M/d/yyyy H:m" s)
+    (re-matches #"\d+-\d+-\d+T\d+:\d+:\d+" s) (t/local-date "y-M-d'T'H:m:s" s)
+    (re-matches #"\d+-\d+-\d+ \d+:\d+:\d+" s) (t/local-date "y-M-d H:m:s" s)
     :else (throw (IllegalArgumentException. (str "Bad date: " s)))))
 
 (defn fix-date [m] (update-in m [:date] parse-date))
@@ -123,9 +123,15 @@ create table covid_day (
   (let [prev (last lst)]
     (conj
      lst
-     (merge new {:cases-change (- (or (:cases new) 0) (or (:cases prev) 0))
-                 :deaths-change (- (or (:deaths new) 0) (or (:deaths prev) 0))
-                 :recoveries-change (- (or (:recoveries new) 0) (or (:recoveries prev) 0))}))))
+     (merge new {:cases-change (-
+                                (or (:cases new) 0)
+                                (or (:cases prev) 0))
+                 :deaths-change (-
+                                 (or (:deaths new) 0)
+                                 (or (:deaths prev) 0))
+                 :recoveries-change (-
+                                     (or (:recoveries new) 0)
+                                     (or (:recoveries prev) 0))}))))
 
 (defn ammend-changes [col]
   (->> col
@@ -153,61 +159,25 @@ create table covid_day (
 (defn days-ago [days date]
   (-> date (t/adjust t/minus (t/days days))))
 
-(comment
-
-  (time (do
-          (create-table! ds)
-          (->>
-           "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
-           read-csv
-           (pmap cols->maps)
-           (pmap fix-date)
-           (pmap fix-numbers)
-           latest-daily
-           ammend-changes
-           (filter has-changes?)
-           (pmap (partial insert-day! ds))
-           doall
-           count)))
-
-  (->> (jdbc/execute! ds ["
-select *
-from covid_day
-order by date, country, state, county"])
-       (take 20))
-
-  (->> (jdbc/execute! ds ["select count(distinct country) from covid_day"]))
-
-  (->> (jdbc/execute! ds ["
-select date, country, state, county, count(*) as c
-from covid_day
-group by date, country, state, county
-having c > 1"]))
-
+(defn stage-data! [ds input-dir]
+  (create-table! ds)
   (->>
-   (jdbc/execute! ds ["
-select
-  date,
-  case_total, case_change,
-  death_total, death_change,
-  recovery_total, recovery_change
-from covid_day
-where country = 'US'
-and state = 'Pennsylvania'
-and county = 'Lancaster'
-order by date, country, state, county
-"])
-   (map vals)
-   (map prn))
+   "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
+   read-csv
+   (pmap cols->maps)
+   (pmap fix-date)
+   (pmap fix-numbers)
+   latest-daily
+   ammend-changes
+   (filter has-changes?)
+   (pmap (partial insert-day! ds))
+   doall
+   count))
 
-  (jdbc/execute! ds ["delete from covid_day"])
-
-  (-> (t/local-date-time) (t/adjust t/minus (t/days 14)))
-
-  (->> 
-    (jdbc/execute!
-      ds
-      ["
+(defn cases-by-window [ds country state date days]
+  (jdbc/execute!
+   ds
+   ["
 select county, sum(case_change)
 from covid_day
 where date >= ?
@@ -216,10 +186,39 @@ and country = ?
 and state = ?
 group by county
 "
-       (days-ago 14 (t/local-date-time 2020 5 25))
-       (t/local-date-time 2020 5 25)
-       "US"
-       "New York"])
+    (days-ago 14 date)
+    date
+    country
+    state]))
+
+(defn series-by-county [ds country state county]
+  (jdbc/execute!
+    ds
+    ["
+select
+  date,
+  case_total, case_change,
+  death_total, death_change,
+  recovery_total, recovery_change
+from covid_day
+where country = ?
+and state = ?
+and county = ?
+order by date, country, state, county
+"
+     country
+     state
+     county]))
+
+(comment
+  (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+
+  (->>
+   (cases-by-window ds "US" "Pennsylvania" (t/local-date) 14)
+   (map (comp prn vals)))
+
+  (->>
+    (series-by-county ds "US" "Pennsylvania" "Lancaster")
     (map (comp prn vals)))
 
   nil)
