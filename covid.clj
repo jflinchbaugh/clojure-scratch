@@ -99,8 +99,9 @@ create table covid_day (
   primary key (date, country, state, county))"]))
 
 (defn insert-day! [ds r]
-  (jdbc/execute! ds
-                 (cons "
+  (jdbc/execute!
+   ds
+   (cons "
 insert into covid_day (
   date,
   country,
@@ -113,7 +114,22 @@ insert into covid_day (
   recovery_total,
   recovery_change
 ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-                       (insert-values r))))
+         (insert-values r))))
+
+(defn drop-dims! [ds]
+  (jdbc/execute! ds ["drop table dim_location if exists"]))
+
+(defn create-dims! [ds]
+  (drop-dims! ds)
+  (jdbc/execute!
+   ds
+   ["
+create table dim_location (
+  location_key uuid primary key,
+  country varchar,
+  state varchar,
+  county varchar,
+  unique (country, state, county))"]))
 
 (def location-grouping (juxt :country :state :county))
 
@@ -215,6 +231,39 @@ order by date, country, state, county
     state
     county]))
 
+(defn uuid []
+  (java.util.UUID/randomUUID))
+
+(defn insert-dims! [ds [country state county]]
+  (jdbc/execute!
+   ds
+   ["
+insert into dim_location (
+  location_key,
+  country,
+  state,
+  county
+) values (?, ?, ?, ?)"
+    (uuid)
+    country
+    state
+    county]))
+
+(defn load-dims! [ds]
+  (let [existing (->>
+                  (jdbc/execute!
+                   ds
+                   ["select country, state, county from dim_location"])
+                  (map vals)
+                  set)]
+    (->>
+     (jdbc/execute! ds ["select distinct country, state, county from covid_day"])
+     (pmap vals)
+     (filter (complement existing))
+     (pmap (partial insert-dims! ds))
+     doall
+     count)))
+
 (comment
   (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
@@ -225,5 +274,9 @@ order by date, country, state, county
   (->>
    (series-by-county ds "US" "Pennsylvania" "Lancaster")
    (map (comp prn vals)))
+
+  (create-dims! ds)
+
+  (load-dims! ds)
 
   nil)
