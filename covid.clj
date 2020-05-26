@@ -183,8 +183,9 @@ create table dim_location (
 (defn stage-data! [ds input-dir]
   (create-table! ds)
   (->>
-   "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
+   input-dir
    read-csv
+   (pmap #(pmap str/trim %))
    (pmap cols->maps)
    (pmap fix-date)
    (pmap fix-numbers)
@@ -259,6 +260,7 @@ insert into dim_location (
     (->>
      (jdbc/execute! ds ["select distinct country, state, county from covid_day"])
      (pmap vals)
+     (pmap (fn [r] (pmap (fn [v] (if (str/blank? v) "N/A" v)) r)))
      (filter (complement existing))
      (pmap (partial insert-dims! ds))
      doall
@@ -278,5 +280,12 @@ insert into dim_location (
   (create-dims! ds)
 
   (load-dims! ds)
+
+  (->> 
+    (jdbc/execute!
+      ds
+      ["select country, state, county from dim_location"])
+    (pmap vals)
+    (map prn))
 
   nil)
