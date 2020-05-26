@@ -112,7 +112,8 @@ create table covid_day (
   death_total int,
   death_change int,
   recovery_total int,
-  recovery_change int)"]))
+  recovery_change int,
+  primary key (date, country, state, county))"]))
 
 (def location-grouping (juxt :country :state :county))
 
@@ -136,6 +137,22 @@ create table covid_day (
        vals
        flatten))
 
+(defn latest-daily [col]
+  (->> col
+       (sort-by table-keys)
+       (group-by table-keys)
+       (reduce-kv
+        (fn [m k v]
+          (assoc m k (last v))) {})
+       vals
+       flatten))
+
+(defn has-changes? [r]
+  (not= [0 0 0] ((juxt :cases-change :deaths-change :recoveries-change) r)))
+
+(defn days-ago [days date]
+  (-> date (t/adjust t/minus (t/days days))))
+
 (comment
 
   (time (do
@@ -146,7 +163,9 @@ create table covid_day (
            (pmap cols->maps)
            (pmap fix-date)
            (pmap fix-numbers)
-           (ammend-changes)
+           latest-daily
+           ammend-changes
+           (filter has-changes?)
            (pmap (partial insert-day! ds))
            doall
            count)))
@@ -155,9 +174,9 @@ create table covid_day (
 select *
 from covid_day
 order by date, country, state, county"])
-    (take 20))
+       (take 20))
 
-  (->> (jdbc/execute! ds ["select count(distinct country) from covid_day"]) )
+  (->> (jdbc/execute! ds ["select count(distinct country) from covid_day"]))
 
   (->> (jdbc/execute! ds ["
 select date, country, state, county, count(*) as c
@@ -167,16 +186,40 @@ having c > 1"]))
 
   (->>
    (jdbc/execute! ds ["
-select date, case_total, case_change
+select
+  date,
+  case_total, case_change,
+  death_total, death_change,
+  recovery_total, recovery_change
 from covid_day
 where country = 'US'
 and state = 'Pennsylvania'
 and county = 'Lancaster'
+order by date, country, state, county
 "])
    (map vals)
-   (map #(update % 0 local-date))
    (map prn))
 
   (jdbc/execute! ds ["delete from covid_day"])
+
+  (-> (t/local-date-time) (t/adjust t/minus (t/days 14)))
+
+  (->> 
+    (jdbc/execute!
+      ds
+      ["
+select county, sum(case_change)
+from covid_day
+where date >= ?
+and date <= ?
+and country = ?
+and state = ?
+group by county
+"
+       (days-ago 14 (t/local-date-time 2020 5 25))
+       (t/local-date-time 2020 5 25)
+       "US"
+       "New York"])
+    (map (comp prn vals)))
 
   nil)
