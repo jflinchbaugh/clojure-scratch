@@ -235,9 +235,6 @@ create table dim_location (
   county varchar,
   unique (country, state, county))"]))
 
-(defn create-dims! [ds]
-  (create-dim-location! ds))
-
 (defn insert-dim-location! [ds [country state county]]
   (jdbc/execute!
    ds
@@ -253,12 +250,17 @@ insert into dim_location (
     state
     county]))
 
+(defn dim-locations [ds] 
+  (->>
+    (jdbc/execute!
+      ds
+      ["select location_key, country, state, county from dim_location"])
+    (map vals)))
+
 (defn load-dim-location! [ds]
-  (let [existing (->>
-                  (jdbc/execute!
-                   ds
-                   ["select country, state, county from dim_location"])
-                  (map vals)
+  (let [existing (->> ds
+                  dim-locations
+                  (map rest)
                   set)]
     (->>
      (jdbc/execute! ds ["select distinct country, state, county from covid_day"])
@@ -268,6 +270,52 @@ insert into dim_location (
      (pmap (partial insert-dim-location! ds))
      doall
      count)))
+
+(defn drop-dim-date! [ds]
+  (jdbc/execute! ds ["drop table dim_date if exists"]))
+
+(defn create-dim-date! [ds]
+  (drop-dim-date! ds)
+  (jdbc/execute!
+    ds
+    ["
+create table dim_date (
+  date_key uuid primary key,
+  date timestamp,
+  unique (date))"]))
+
+(defn insert-dim-date! [ds [date]]
+  (jdbc/execute!
+    ds
+    ["
+insert into dim_date (
+  date_key,
+  date
+) values (?, ?)"
+     (uuid)
+     date]))
+
+(defn dim-dates [ds]
+  (->>
+    (jdbc/execute!
+      ds
+      ["select date_key, date from dim_date"])
+    (map vals)))
+
+(defn load-dim-date! [ds]
+  (let [existing (->> ds dim-dates (map rest) set)]
+    (->>
+      (jdbc/execute! ds ["select distinct date from covid_day"])
+      (pmap vals)
+      #_(pmap (fn [r] (pmap (fn [v] (if (str/blank? v) "N/A" v)) r)))
+      (filter (complement existing))
+      (pmap (partial insert-dim-date! ds))
+      doall
+      count)))
+
+(defn create-dims! [ds]
+  (create-dim-location! ds)
+  (create-dim-date! ds))
 
 (defn deaths-by-state [ds]
   (->>
@@ -305,6 +353,12 @@ order by s
   (create-dims! ds)
 
   (load-dim-location! ds)
+
+  (dim-locations ds)
+
+  (load-dim-date! ds)
+
+  (dim-dates ds)
 
   (->>
    (cases-by-window ds "US" "Pennsylvania" (t/local-date) 14)
