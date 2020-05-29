@@ -220,11 +220,11 @@ order by date, country, state, county
 (defn uuid []
   (java.util.UUID/randomUUID))
 
-(defn drop-dims! [ds]
+(defn drop-dim-location! [ds]
   (jdbc/execute! ds ["drop table dim_location if exists"]))
 
-(defn create-dims! [ds]
-  (drop-dims! ds)
+(defn create-dim-location! [ds]
+  (drop-dim-location! ds)
   (jdbc/execute!
     ds
     ["
@@ -235,7 +235,10 @@ create table dim_location (
   county varchar,
   unique (country, state, county))"]))
 
-(defn insert-dims! [ds [country state county]]
+(defn create-dims! [ds]
+  (create-dim-location! ds))
+
+(defn insert-dim-location! [ds [country state county]]
   (jdbc/execute!
    ds
    ["
@@ -250,7 +253,7 @@ insert into dim_location (
     state
     county]))
 
-(defn load-dims! [ds]
+(defn load-dim-location! [ds]
   (let [existing (->>
                   (jdbc/execute!
                    ds
@@ -262,16 +265,46 @@ insert into dim_location (
      (pmap vals)
      (pmap (fn [r] (pmap (fn [v] (if (str/blank? v) "N/A" v)) r)))
      (filter (complement existing))
-     (pmap (partial insert-dims! ds))
+     (pmap (partial insert-dim-location! ds))
      doall
      count)))
+
+(defn deaths-by-state [ds]
+  (->>
+    (jdbc/execute!
+      ds
+      ["
+select
+  sum(death_change) as s,
+  country,
+  state
+from covid_day
+group by
+  country,
+  state
+order by s"])
+    ))
+
+(defn deaths-by-country [ds]
+  (->>
+    (jdbc/execute!
+      ds
+      ["
+select
+  sum(death_change) as s
+  , country
+from covid_day
+group by country
+order by s
+"])
+    ))
 
 (comment
   (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
   (create-dims! ds)
 
-  (load-dims! ds)
+  (load-dim-location! ds)
 
   (->>
    (cases-by-window ds "US" "Pennsylvania" (t/local-date) 14)
@@ -282,9 +315,7 @@ insert into dim_location (
    (map (comp prn vals)))
 
   (->>
-    (jdbc/execute!
-      ds
-      ["select country, state, county from dim_location"])
+    (deaths-by-country ds)
     (pmap vals)
     (map prn))
 
