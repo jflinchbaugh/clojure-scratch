@@ -11,8 +11,7 @@
     (l/membero op1 ops)
     (l/membero op2 ops)
     (l/membero op3 ops)
-    (l/membero [val1 val2 val3 val4] (combo/permutations vals))
-    )
+    (l/membero [val1 val2 val3 val4] (combo/permutations vals)))
 
   nil)
 
