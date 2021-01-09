@@ -43,3 +43,63 @@
   (time (count-change 2000))
 
   .)
+
+
+; higher order functions SICP
+
+
+; linear recursive sum (pops stack on too big)
+(defn sum [term a next b]
+  (if (> a b)
+    0
+    (+
+     (term a)
+     (sum term (next a) next b))))
+
+(defn cube [x] (* x x x))
+
+(comment
+  (sum cube 1 inc 10)
+
+  .)
+
+(defn pi-sum [a b]
+  (let [pi-term (fn [x] (/ 1.0 (* x (+ x 2))))
+        pi-next (fn [x] (+ x 4))]
+    (sum pi-term a pi-next b)))
+
+(comment
+  (* 8 (pi-sum 1 10000))
+
+  .)
+
+(defn integral [f a b dx]
+  (let [add-dx (fn [x] (+ x dx))]
+    (*
+      (sum f (+ a (/ dx 2.0)) add-dx b)
+      dx)))
+
+
+(comment
+  (integral cube 0 1 0.001)
+
+  .)
+
+; iterative sum instead of linear recursive
+(defn sum [term a next b]
+  (loop [a a
+         result 0]
+    (if (> a b)
+      result 
+      (recur (next a) (+ result (term a))))))
+
+(comment
+
+  (sum identity 0 inc 10)
+
+  ; no more overflows! 
+  (* 8 (pi-sum 1 1000000000))
+
+  (integral cube 0 1 0.0000001)
+
+  .)
