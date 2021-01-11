@@ -10,4 +10,5 @@
                  [hiccup "1.0.5"]
                  [seancorfield/next.jdbc "1.0.424"]
                  [com.h2database/h2 "1.4.200"]
-                 [hugsql-next-jdbc "0.1.3"]])
+                 [hugsql-next-jdbc "0.1.3"]
+                 [clj-commons/clj-yaml "0.7.0"]])
