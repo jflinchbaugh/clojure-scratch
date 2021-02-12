@@ -2,14 +2,12 @@
   (:require [clj-yaml.core :as y]
             [clj-http.client :as h]))
 
-(def get (memoize h/get))
-
 (comment
 
 
   (->
     "https://sonatype.github.io/helm3-charts/index.yaml"
-    get
+    h/get
     :body
     y/parse-string
     :entries
@@ -18,7 +16,7 @@
       flatten
       (map :urls)
       flatten
-      (pmap (fn [u] [u ((juxt :status :length) (get u))]))))
+      (map (fn [u] [u ((juxt :status :length) (h/get u))]))))
 ;; => (["https://github.com/sonatype/helm3-charts/releases/download/nexus-iq-server-103.0.0/nexus-iq-server-103.0.0.tgz"
 ;;      [200 7422]]
 ;;     ["https://sonatype.github.io/helm3-charts/charts/nexus-iq-server-102.0.1.tgz"
