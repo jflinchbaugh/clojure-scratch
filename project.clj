@@ -11,5 +11,6 @@
                  [seancorfield/next.jdbc "1.1.613"]
                  [com.h2database/h2 "1.4.200"]
                  [hugsql-next-jdbc "0.1.3"]
-                 [clj-commons/clj-yaml "0.7.2"]
-                 [clj-http "3.11.0"]])
+                 [clj-commons/clj-yaml "0.7.106"]
+                 [clj-http "3.12.1"]
+                 [hawk "0.2.11"]])
