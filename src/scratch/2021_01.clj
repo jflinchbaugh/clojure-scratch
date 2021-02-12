@@ -112,4 +112,18 @@
 ;;     ["https://sonatype.github.io/helm3-charts/charts/nexus-repository-manager-21.1.0.tgz"
 ;;      [200 9387]])
 
+
+  (mapcat inc [1 2 3 4])
+
+  (map + [1 2 3 4] [5 6 7 8])
+
+
+  (->>
+    ["language" "clojure" "username" "john"]
+    (partition 2)
+    (reduce (fn [m [k v]] (assoc m k v)) {}))
+  ;; => {"language" "clojure", "username" "john"}
+
+
   .)
+
