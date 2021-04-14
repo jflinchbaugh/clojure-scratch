@@ -2,7 +2,7 @@
   (:require [hawk.core :as hawk]))
 
 (comment
-  (def watcher (hawk/watch! [{:paths ["/home/john/workspace"]
+  (def watcher (hawk/watch! [{:paths ["/home/john/"]
                               :handler (fn [ctx event]
                                          (println ctx event)
                                          ctx)}]))
