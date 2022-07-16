@@ -1,5 +1,6 @@
 (ns scratch.2022-07
-  (:require [clojure.test :as t]))
+  (:require [clojure.test :as t]
+            [clojure.string :as str]))
 
 (defn fltn
   ([c] (fltn [] c))
@@ -28,5 +29,15 @@
     )
 
   (fltn [:a :b :c])
+
+  nil)
+
+(def only-caps (fn [s]
+  (str/join (filter (comp (partial re-matches #"[A-Z]") str) s))))
+
+(comment
+  (t/is (= "HLOWRD" (only-caps "HeLlO, WoRlD!")))
+
+
 
   nil)
