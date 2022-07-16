@@ -6,8 +6,8 @@
   ([a c]
    (cond
      (empty? c) a
-     (coll? (first c)) (fltn a (concat [] (first c) (rest c)))
-     :else (fltn (conj a (first c)) (rest c)))))
+     (coll? (first c)) (recur a (concat [] (first c) (rest c)))
+     :else (recur (conj a (first c)) (rest c)))))
 
 (comment
   ;; https://4clojure.oxal.org/#/problem/28
