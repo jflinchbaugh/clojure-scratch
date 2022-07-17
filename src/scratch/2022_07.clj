@@ -99,3 +99,39 @@
   (rng 1 5)
 
   .)
+
+(def my-max (fn [& c] (-> c sort last)))
+
+(def intlv
+  (fn [a b]
+    (mapcat (fn [x y] [x y]) a b)))
+
+(comment
+
+  (t/is (= '(1 :a 2 :b 3 :c) (intlv [1 2 3] [:a :b :c])))
+
+  .)
+
+(def intps
+  (fn [v c]
+    (rest (mapcat (fn [x y] [x y]) (repeat v) c))))
+
+(comment
+  (t/is (= [1 0 2 0 3] (intps 0 [1 2 3])))
+
+  .)
+
+(def drop-nth
+  (fn [c n]
+    (mapcat
+      (fn [v i] (if (= i n) [] [v]))
+      c
+      (cycle (range 1 (inc n))))))
+
+(comment
+
+  (t/testing
+    (t/is (= [1 3 5] (drop-nth [1 2 3 4 5 6] 2)))
+    (t/is (= [1 3 5] (drop-nth [1 2 3 4 5 ] 2))))
+
+  .)
