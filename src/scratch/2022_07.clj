@@ -84,3 +84,18 @@
   (dup-seq [1 2 3] 3)
 
   .)
+
+(def rng
+  (fn rng
+    ([a b]
+     (rng [] a b))
+    ([c a b]
+     (if
+         (>= a b) c
+         (recur (conj c a) (inc a) b)))))
+
+(comment
+
+  (rng 1 5)
+
+  .)
