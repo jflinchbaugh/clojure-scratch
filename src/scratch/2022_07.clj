@@ -135,3 +135,38 @@
     (t/is (= [1 3 5] (drop-nth [1 2 3 4 5 ] 2))))
 
   .)
+
+(def fac
+  (fn fac [x]
+    (cond
+      (= 0 x) 1
+      :else (* x (fac (dec x))))))
+
+(comment
+
+  (t/testing
+      (t/is (= 1 (fac 1)))
+    (t/is (= 6 (fac 3)))
+    (t/is (= 120 (fac 5)))
+    (t/is (= 40320 (fac 8))))
+
+
+  .)
+
+(def rev-intlv
+  (fn [c n]
+    (map (fn [l] (map first l))
+      (vals
+        (group-by second
+          (map
+            (fn [v i] [v i])
+            c
+            (cycle (range 1 (inc n)))))))))
+
+(comment
+  (t/testing
+    (t/is (= '((1 3 5) (2 4 6)) (rev-intlv [1 2 3 4 5 6] 2)))
+    (t/is (= '((0 3 6) (1 4 7) (2 5 8)) (rev-intlv (range 9) 3)))
+    (t/is (= '((0 5) (1 6) (2 7) (3 8) (4 9)) (rev-intlv (range 10) 5))))
+
+  .)
