@@ -12,12 +12,12 @@
 
 (comment
   ;; https://4clojure.oxal.org/#/problem/28
-  (t/testing
+  (t/testing "fltn"
    (t/is (= '(1 2 3 4 5 6) (fltn '((1 2) 3 [4 [5 6]]))))
     (t/is (= '("a" "b" "c") (fltn ["a" ["b"] "c"])))
     (t/is (= '(:a) (fltn '((((:a))))))))
 
-  (t/testing
+  (t/testing "fltn"
    (t/is (= [] (fltn '())))
     (t/is (= [1 2 3] (fltn '(1 2 3))))
     (t/is (= [1 2 3] (fltn '((1 2 3)))))
@@ -50,7 +50,7 @@
                  c)))
 
 (comment
-  (t/testing
+  (t/testing "compress"
    (t/is (= "Leroy" (apply str (compress "Leeeeeerrroyyy"))))
     (t/is (= '(1 2 3 2 3) (compress [1 1 2 3 3 2 2 3])))
     (t/is (= '([1 2] [3 4] [1 2]) (compress [[1 2] [1 2] [3 4] [1 2]]))))
@@ -62,7 +62,7 @@
     (partition-by identity c)))
 
 (comment
-  (t/testing
+  (t/testing "pack"
    (t/is (= '((1 1) (2) (1 1 1) (3 3)) (pack [1 1 2 1 1 1 3 3])))
     (t/is (= '((:a :a) (:b :b) (:c)) (pack [:a :a :b :b :c])))
     (t/is (= '(([1 2] [1 2]) ([3 4])) (pack [[1 2] [1 2] [3 4]]))))
@@ -130,7 +130,7 @@
 
 (comment
 
-  (t/testing
+  (t/testing "drop-nth"
     (t/is (= [1 3 5] (drop-nth [1 2 3 4 5 6] 2)))
     (t/is (= [1 3 5] (drop-nth [1 2 3 4 5 ] 2))))
 
@@ -144,7 +144,7 @@
 
 (comment
 
-  (t/testing
+  (t/testing "fac"
       (t/is (= 1 (fac 1)))
     (t/is (= 6 (fac 3)))
     (t/is (= 120 (fac 5)))
