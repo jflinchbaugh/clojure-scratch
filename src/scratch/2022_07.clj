@@ -164,9 +164,26 @@
             (cycle (range 1 (inc n)))))))))
 
 (comment
-  (t/testing
+  (t/testing "rev-intlv"
     (t/is (= '((1 3 5) (2 4 6)) (rev-intlv [1 2 3 4 5 6] 2)))
     (t/is (= '((0 3 6) (1 4 7) (2 5 8)) (rev-intlv (range 9) 3)))
     (t/is (= '((0 5) (1 6) (2 7) (3 8) (4 9)) (rev-intlv (range 10) 5))))
+
+  .)
+
+(def rotate
+  (fn [n c]
+    (let [l (count c)
+          rn (mod n l)]
+      (concat (drop rn c) (take rn c)))))
+
+(comment
+
+  (t/testing "rotate"
+    (t/is (= '(3 4 5 1 2) (rotate 2 [1 2 3 4 5])))
+    (t/is (= '(4 5 1 2 3) (rotate -2 [1 2 3 4 5])))
+    (t/is (= '(2 3 4 5 1) (rotate 6 [1 2 3 4 5])))
+    (t/is (= '(:b :c :a) (rotate 1 '(:a :b :c))))
+    (t/is (= '(:c :a :b) (rotate -4 '(:a :b :c)))))
 
   .)
