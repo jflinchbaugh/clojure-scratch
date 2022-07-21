@@ -256,3 +256,19 @@
   ((fn foo [x] (when (> x 0) (conj (foo (dec x)) x))) 5)
 
   .)
+
+(def compose
+  (fn [& fs] (reduce #(fn [& r] (% (apply %2 r))) fs )))
+
+(comment
+  (t/testing "compose"
+    (t/is (= ((compose rest reverse) [1 2 3 4]) [3 2 1]))
+    (t/is (= ((compose (partial + 3) second) [1 2 3 4]) 5))
+
+    (t/is (= ((compose zero? #(mod % 8) +) 3 5 7 9) true))
+
+    (t/is (= ((compose #(.toUpperCase %) #(apply str %) take) 5 "hello world") "HELLO")))
+
+
+  .)
+
