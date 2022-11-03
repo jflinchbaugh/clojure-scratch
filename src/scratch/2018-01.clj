@@ -17,7 +17,7 @@
 
 (def root
   (->
-    "data/BeyondPodFeeds.opml"
+    "data/podcast-addict.opml"
     io/file
     zip-opml
   )
@@ -50,13 +50,14 @@
   )
 )
 
+(defn paid? [{url :podcast-url}] (re-matches #".*auth=.*" url))
+
 (map
-  #(println
-    "podcast name: " (:podcast-name %)
-    "\n"
-    "podcast url: " (:podcast-url %)
-    "\n"
-  ) podcast-db
+  (fn [p]
+    (println
+      (str "* " (:podcast-name p) " "
+        (if (paid? p) "(Private Link)" (:podcast-url p)))))
+  podcast-db
 )
 
 (comment make a more generic accessor)
