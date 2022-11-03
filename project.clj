@@ -7,6 +7,7 @@
                  [org.clojure/data.zip "1.0.0"]
                  [cljc.java-time "0.1.18"]
                  [clojure.java-time "0.3.3"]
+                 [org.clojars.gnzh/feedparser-clj "0.6.0"]
                  [hiccup "1.0.5"]
                  [seancorfield/next.jdbc "1.2.659"]
                  [com.h2database/h2 "2.1.214"]

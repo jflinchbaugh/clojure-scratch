@@ -1,6 +1,10 @@
 (ns scratch.2022-07
   (:require [clojure.test :as t]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clj-yaml.core :as y]
+            [clj-http.client :as h]
+            [feedparser-clj.core :as feed]
+            ))
 
 (defn fltn
   ([c] (fltn [] c))
@@ -272,3 +276,12 @@
 
   .)
 
+
+(comment
+  (->>
+    "https://webcad.lcwc911.us/Pages/Public/LiveIncidentsFeed.aspx"
+    feed/parse-feed
+    :entries
+  )
+
+.)
