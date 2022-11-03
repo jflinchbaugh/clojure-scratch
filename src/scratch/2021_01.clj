@@ -15,6 +15,7 @@
       (map :urls)
       flatten
       (pmap (fn [u] [u ((juxt :status :length) (h/get u))]))))
+  
 ;; => (["https://sonatype.github.io/helm3-charts/nexus-iq-server-103.0.1.tgz"
 ;;      [200 7655]]
 ;;     ["https://sonatype.github.io/helm3-charts/nexus-iq-server-102.0.1.tgz"
